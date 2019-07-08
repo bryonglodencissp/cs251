@@ -53,27 +53,23 @@ public class MinHeap {
      * Keep fixing the heap until we reach a node with a smaller key or the root.
      * @param: k is the index of the node to swim in the array
      */
-    public void swim(int k) {
+    public void swim(int index) {
         //TODO: Implement the swim function
-        int parentIndex; //, tmp;
+        int parent = (index-1)/2;
+        Score bottom = lb[index];
 
-        if (k != 0) {
-
-            parentIndex = parent(k);
-
-            if (lb[parentIndex].compareTo(lb[k]) > 0) {
-
-                //tmp = lb[parentIndex].getScore();
-
-                swap(parentIndex, k);
-               // lb[parentIndex] = lb[k];
-                //lb[k].score = tmp;
-                //lb[k].uid = parentIndex;
-                swim(parentIndex);
-
-            }
-
+        while (index > 0 && lb[parent].score > bottom.score)
+        {
+            Score temp = lb[parent];
+            lb[parent] = lb[index];
+            lb[index] = temp;
+            index = parent;
+            parent = (parent -1 ) / 2;
         }
+        if ( parent == 0 )
+            return;
+        swim(parent);
+
     }
 
     /**
@@ -83,70 +79,78 @@ public class MinHeap {
      * Keep sinking until we reach a node with both children larger
      * @param: k is the index of the node to sink in the array
      */
-    public void sink(int k) {
-        //TODO: Implement the sink function
-        int leftChildIndex, rightChildIndex, minIndex, tmp;
+    public void sink(int index) {
+        int smallerChild = 0;
+        Score top = lb[index];
+        while (index < heap_size/2) {
+            int leftChild = 2*index+1;
+            int rightChild = leftChild+1;
 
-        leftChildIndex = leftChild(k);
 
-        rightChildIndex = rightChild(k);
+            if (rightChild < heap_size && lb[leftChild].score < lb[rightChild].score)  {
+                smallerChild = leftChild;
+            }
+            else {
+                smallerChild = rightChild;
+            }
 
-        if (rightChildIndex >= capacity) {
+            if (smallerChild >= heap_size)
+                break;
 
-            if (leftChildIndex >= capacity)
-
+            if (lb[smallerChild].score > lb[index].score)
                 return;
-
-            else
-
-                minIndex = leftChildIndex;
-
-        } else {
-
-            if (lb[leftChildIndex].compareTo(lb[rightChildIndex]) <= 0)
-
-                minIndex = leftChildIndex;
-
-            else
-
-                minIndex = rightChildIndex;
+            Score temp = lb[index];
+            lb[index] = lb[smallerChild];
+            lb[smallerChild] = temp;
+            index = smallerChild;
 
         }
 
-        if (lb[k].compareTo(lb[minIndex]) > 0) {
+        if (index == smallerChild)
+            return;
 
-            tmp = lb[minIndex].getScore();
 
-            lb[minIndex] = lb[k];
+        if (heap_size == smallerChild)
+            return;
 
-            lb[k].score = tmp;
 
-            sink(minIndex);
-
-        }
-
+        sink(smallerChild);
     }
 
 
-    public void sort() {
+    public void heapify(int n, int i) {
+        int smallest = i;
+        int l = 2 * i + 1;
+        int r = 2 * i + 2;
 
+        if (l < n && lb[l].score < lb[smallest].score)
+            smallest = l;
 
-        //TODO: Sort the heap from Big to Small
-        //Hint: A min-heap is sorted from small to big
-        for (int i = 1; i < heap_size; i++) {
-            for(int j = i ; j > 0 ; j--){
-                if(lb[j].compareTo(lb[j-1]) > 0){
-                    Score temp = new Score(lb[j].uid, lb[j].score);
-                    lb[j].score = lb[j-1].score;
-                    lb[j].uid = lb[j-1].uid;
-                    lb[j-1].score = temp.score;
-                    lb[j-1].uid = temp.uid;
-   //                 temp = lb;
-   //                 lb[j] = lb[j-1];
-   //                 lb = temp;
-                }
-            }
+        if (r < n && lb[r].score < lb[smallest].score)
+            smallest = r;
+
+        if (smallest != i) {
+            Score temp = lb[i];
+            lb[i] = lb[smallest];
+            lb[smallest] = temp;
+            heapify(n, smallest);
         }
+    }
+
+    public void sort() {
+        int size = heap_size;
+
+        for (int i = size/2 - 1; i >= 0; i--)
+            heapify(size, i);
+
+        for (int i=size-1; i>=0; i--)
+        {
+            Score x = lb[0];
+            lb[0] = lb[i];
+            lb[i] = x;
+            heapify(i, 0);
+        }
+
     }
 
     /**
@@ -160,25 +164,22 @@ public class MinHeap {
      */
     public void insert(Score s) {
         //TODO: Implement the insert function
-        // Score tmp = new Score(s.uid, s.score);
 
+        Score newScore = new Score(s.uid, s.score);
         if (capacity == heap_size)
         {
-            //heap_size--;
-            //capacity++;
 
-            Score temp = delMin();
+            if (newScore.score > lb[0].score) {
+                Score delMe = delMin();
+                lb[heap_size] = newScore;
+                swim(heap_size++);
+            }
+
             return;
         }
-
-
-        heap_size++;
-        int i = heap_size - 1;
-        lb[i] = new Score(s.uid, s.score);
-        capacity--;
-
-        //swim(i);
-        // Fix the min heap property if it is violated
+        lb[heap_size] = newScore;
+        swim(heap_size++);
+        return;
     }
 
 
@@ -194,12 +195,17 @@ public class MinHeap {
         if (heap_size <= 0)
             return null;
         if (heap_size == 1){
+            heap_size--;
             return lb[0];
         } else {
-            sink(heap_size);
-            return lb[0];
+            Score ret = lb[0];
+            lb[0] = null;
+            lb[0] = lb[heap_size - 1];
+            lb[heap_size - 1] = null;
+            heap_size--;
+            sink(0);
+            return ret;
         }
-        // Store the minimum value and remote it from heap
     }
 
 
@@ -208,9 +214,8 @@ public class MinHeap {
         String s = "";
         for(int i = 0; i < lb.length; i++) {
             if(lb[i] != null)
-                s += lb[i].toString() + "\r\n";
+                s += lb[i].toString() + "\n";
         }
         return s;
     }
-
 }

@@ -52,7 +52,7 @@ class MinHeapTest {
         }
         br.close();
         String outputString = sb.toString();
-        MainMinHeap.main(new String[] {inputFolderPath + "input2.txt", "100"});
+        MainMinHeap.main(new String[] {inputFolderPath + "input2.txt", "50"});
         assertEquals(outputString, newOut.toString());
     }
 
@@ -68,7 +68,7 @@ class MinHeapTest {
         }
         br.close();
         String outputString = sb.toString();
-        MainMinHeap.main(new String[] {inputFolderPath + "input3.txt", "200"});
+        MainMinHeap.main(new String[] {inputFolderPath + "input3.txt", "10"});
         assertEquals(outputString, newOut.toString());
     }
 
