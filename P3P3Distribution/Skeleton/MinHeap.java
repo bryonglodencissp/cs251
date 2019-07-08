@@ -163,8 +163,6 @@ public class MinHeap {
      * @param: s is the new key (Score) added
      */
     public void insert(Score s) {
-        //TODO: Implement the insert function
-
         Score newScore = new Score(s.uid, s.score);
         if (capacity == heap_size)
         {
